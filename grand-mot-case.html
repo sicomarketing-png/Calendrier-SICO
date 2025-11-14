@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+    body {
+      <section class="motcase-mini">
+  <h3 class="motcase-mini-title">Mot casé de Noël</h3>
+
+  <p class="motcase-mini-intro">
+    Complète les mots à partir des définitions. Pour certains mots, une lettre est
+    reportée dans le mot-solution ci-dessous. Écris sans accents.
+  </p>
+
+  <div class="motcase-mini-final">
+    <span>Mot solution :</span>
+    <div id="motcase-mini-final-boxes" class="motcase-mini-final-boxes"></div>
+  </div>
+
+  <div id="motcase-mini-words" class="motcase-mini-words"></div>
+
+  <div class="motcase-mini-actions">
+    <button type="button" id="motcase-mini-check" class="motcase-mini-btn">
+      Vérifier
+    </button>
+    <p id="motcase-mini-feedback" class="motcase-mini-feedback"></p>
+  </div>
+</section>
+
+<style>
+  .motcase-mini {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    font-family: montserrat;
+    font-size: 0.9rem;
+    color: #9f552a;
+  }
+
+  .motcase-mini-title {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    font-family: handlee;
+    color: #9f552a;
+  }
+
+  .motcase-mini-intro {
+    margin: 0 0 10px;
+    color: #4b5563;
+    font-size: 0.86rem;
+  }
+
+  .motcase-mini-final {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .motcase-mini-final-boxes {
+    display: flex;
+    gap: 6px;
+  }
+
+  .motcase-mini-final-box {
+    width: 30px;
+    height: 36px;
+    border-radius: 8px;
+    border: 2px solid #9f532a;
+    background: #fff7ed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #9f532a;
+  }
+
+  .motcase-mini-words {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .motcase-mini-row {
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    padding: 6px 8px;
+    background: #f9fafb;
+  }
+
+  .motcase-mini-row.correct {
+    border-color: #22c55e;
+    background: #ecfdf3;
+  }
+
+  .motcase-mini-row.error {
+    border-color: #f97316;
+    background: #fff7ed;
+  }
+
+  .motcase-mini-clue {
+    margin-bottom: 4px;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    font-size: 0.84rem;
+  }
+
+  .motcase-mini-index {
+    font-weight: 700;
+    color: #9f532a;
+  }
+
+  .motcase-mini-length {
+    font-size: 0.72rem;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  .motcase-mini-inputs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .motcase-mini-letter-wrap {
+    position: relative;
+  }
+
+  .motcase-mini-letter-input {
+    width: 24px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    text-align: center;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    outline: none;
+    background: #ffffff;
+  }
+
+  .motcase-mini-letter-input:focus {
+    border-color: #9f532a;
+    box-shadow: 0 0 0 1px rgba(159, 83, 42, 0.25);
+  }
+
+  .motcase-mini-letter-index {
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #9f532a;
+    color: #ffffff;
+    font-size: 0.6rem;
+    padding: 1px 4px;
+    border-radius: 999px;
+    line-height: 1;
+  }
+
+  .motcase-mini-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .motcase-mini-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #9f532a, #c9733c);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.86rem;
+    cursor: pointer;
+  }
+
+  .motcase-mini-feedback {
+    min-height: 1.1em;
+    font-size: 0.85rem;
+  }
+
+  .motcase-mini-feedback.good {
+    color: #15803d;
+  }
+
+  .motcase-mini-feedback.bad {
+    color: #b91c1c;
+  }
+</style>
+
+<script>
+  (function () {
+    // Version plus corsée : mêmes mécaniques, définitions moins évidentes
+    const data = {
+      finalAnswer: "BUCHE",
+      words: [
+        {
+          id: 1,
+          clue: "Bande décorative que l'on noue avec soin autour des paquets-cadeaux.",
+          answer: "RUBAN",
+          finalPos: 1,      // lettre 3 = B → case 1
+          answerIndex: 3
+        },
+        {
+          id: 2,
+          clue: "Décor lumineux ou coloré qui serpente sur les rampes d'escalier ou les branches d'un sapin.",
+          answer: "GUIRLANDE",
+          finalPos: 2,      // lettre 2 = U → case 2
+          answerIndex: 2
+        },
+        {
+          id: 3,
+          clue: "Tentateur sucré à base de cacao, souvent consommé bien au-delà du raisonnable pendant les fêtes.",
+          answer: "CHOCOLAT",
+          finalPos: 3,      // lettre 1 = C → case 3
+          answerIndex: 1
+        },
+        {
+          id: 4,
+          clue: "Ouverture maçonnée où l’on imagine volontiers quelqu’un descendre dans la nuit du 24 au 25.",
+          answer: "CHEMINEE",
+          finalPos: 4,      // lettre 2 = H → case 4
+          answerIndex: 2
+        },
+        {
+          id: 5,
+          clue: "Décor miniature où se pressent santons, ane, boeuf et parfois même un chameau.",
+          answer: "CRECHE",
+          finalPos: 5,      // lettre 3 = E → case 5
+          answerIndex: 3
+        }
+      ]
+    };
+
+    const wordsContainer = document.getElementById("motcase-mini-words");
+    const finalBoxesContainer = document.getElementById("motcase-mini-final-boxes");
+    const feedbackEl = document.getElementById("motcase-mini-feedback");
+    const checkBtn = document.getElementById("motcase-mini-check");
+
+    const finalAnswer = data.finalAnswer.toUpperCase();
+    const finalBoxes = [];
+
+    // Cases du mot-solution
+    for (let i = 0; i < finalAnswer.length; i++) {
+      const box = document.createElement("div");
+      box.className = "motcase-mini-final-box";
+      box.dataset.pos = String(i + 1);
+      finalBoxesContainer.appendChild(box);
+      finalBoxes.push(box);
+    }
+
+    const rows = [];
+
+    // Lignes des mots
+    data.words.forEach((w) => {
+      const row = document.createElement("div");
+      row.className = "motcase-mini-row";
+
+      const clue = document.createElement("div");
+      clue.className = "motcase-mini-clue";
+
+      const idSpan = document.createElement("span");
+      idSpan.className = "motcase-mini-index";
+      idSpan.textContent = w.id + ".";
+
+      const lenSpan = document.createElement("span");
+      lenSpan.className = "motcase-mini-length";
+      lenSpan.textContent = w.answer.length + " lettres";
+
+      const textSpan = document.createElement("span");
+      textSpan.textContent = w.clue;
+
+      clue.appendChild(idSpan);
+      clue.appendChild(lenSpan);
+      clue.appendChild(textSpan);
+
+      const inputsWrap = document.createElement("div");
+      inputsWrap.className = "motcase-mini-inputs";
+
+      const letters = [];
+      for (let i = 0; i < w.answer.length; i++) {
+        const wrap = document.createElement("div");
+        wrap.className = "motcase-mini-letter-wrap";
+
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.maxLength = 1;
+        inp.className = "motcase-mini-letter-input";
+
+        inp.addEventListener("input", function () {
+          this.value = this.value.toUpperCase();
+          row.classList.remove("correct", "error");
+          feedbackEl.textContent = "";
+          feedbackEl.classList.remove("good", "bad");
+          if (this.value && i < letters.length - 1) {
+            letters[i + 1].focus();
+          }
+        });
+
+        if (w.finalPos && w.answerIndex === i + 1) {
+          const badge = document.createElement("div");
+          badge.className = "motcase-mini-letter-index";
+          badge.textContent = String(w.finalPos);
+          wrap.appendChild(badge);
+        }
+
+        wrap.appendChild(inp);
+        inputsWrap.appendChild(wrap);
+        letters.push(inp);
+      }
+
+      row.appendChild(clue);
+      row.appendChild(inputsWrap);
+      wordsContainer.appendChild(row);
+
+      rows.push({ data: w, rowEl: row, inputs: letters });
+    });
+
+    function check() {
+      finalBoxes.forEach((b) => (b.textContent = ""));
+      let correct = 0;
+
+      rows.forEach((r) => {
+        const target = r.data.answer.toUpperCase();
+        const typed = r.inputs.map((i) => (i.value || "").toUpperCase()).join("");
+
+        r.rowEl.classList.remove("correct", "error");
+
+        if (typed === target && typed.length === target.length) {
+          correct++;
+          r.rowEl.classList.add("correct");
+
+          if (r.data.finalPos && r.data.answerIndex) {
+            const letter = target.charAt(r.data.answerIndex - 1);
+            const box = finalBoxes.find(
+              (b) => Number(b.dataset.pos) === r.data.finalPos
+            );
+            if (box) box.textContent = letter;
+          }
+        } else if (typed.length > 0) {
+          r.rowEl.classList.add("error");
+        }
+      });
+
+      const built = finalBoxes.map((b) => b.textContent || "_").join("");
+      if (built === finalAnswer) {
+        feedbackEl.textContent =
+          "Bravo ! Tu as trouvé le mot « " + finalAnswer + " » 🎄";
+        feedbackEl.classList.add("good");
+        feedbackEl.classList.remove("bad");
+      } else {
+        feedbackEl.textContent =
+          "Mots corrects : " +
+          correct +
+          " / " +
+          rows.length +
+          ". Continue pour reconstituer BUCHE !";
+        feedbackEl.classList.add("bad");
+        feedbackEl.classList.remove("good");
+      }
+    }
+
+    checkBtn.addEventListener("click", check);
+  })();
+</script>
+
+
+</body>
+</html>
