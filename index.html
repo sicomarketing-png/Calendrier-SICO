@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calendrier de l'Avent S.I.C.O.</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Polices -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Handlee&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --sico-red:#e53935;
+      --sico-green:#3e8759;
+      --sico-brown:#9f532a;
+      --text-main:#244148;
+      --text-soft:#6b7280;
+      --shadow-soft:0 16px 40px rgba(15,23,42,.25);
+      --line-soft:#e6e8ec;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;background:#f4f6f8;color:var(--text-main);
+      font-family:"Montserrat",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      display:flex;align-items:center;justify-content:center;padding:24px 16px;min-height:100vh;overflow-x:hidden
+    }
+    body.no-scroll{overflow:hidden}
+    .wrap{
+      width:100%;max-width:980px;background:#fff;border-radius:32px;padding:0 28px 26px;
+      box-shadow:var(--shadow-soft);border:1px solid rgba(209,213,219,.9);position:relative;overflow:hidden
+    }
+    .logo{position:absolute;top:18px;right:26px;z-index:3}
+    .logo img{width:min(210px,32vw);height:auto;display:block}
+    .branch{width:calc(100% + 56px);margin:0 -28px;line-height:0}
+    .branch img{width:60%;max-width:640px;display:block}
+    header{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2.3fr);gap:8px 24px;margin-top:0}
+    h1{font-family:"Filmotype Honey","Handlee",cursive;font-weight:400;color:var(--sico-green);
+      font-size:clamp(2.05rem,2.8vw,2.4rem);margin:10px 0 8px}
+    .intro{color:var(--text-soft);max-width:560px;line-height:1.5}
+    .hero{justify-self:end}.hero img{max-width:260px;width:100%;height:auto;display:block}
+    .meta{margin-top:14px;display:flex;flex-direction:column;gap:6px;align-items:center}
+    .pill{display:inline-flex;align-items:center;gap:10px;padding:9px 26px;border-radius:999px;border:1px solid var(--sico-brown);
+      color:var(--sico-brown);font-weight:600;font-size:.95rem;background:#fff;box-shadow:0 8px 16px rgba(148,81,39,.18)}
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--sico-brown)}
+    #calendar-info{font-size:.8rem;color:var(--text-soft)}
+    .grid{margin-top:18px;padding:12px 10px 4px;background:#fff;border-radius:24px;border:1px solid rgba(209,213,219,.9);
+      display:grid;grid-template-columns:repeat(8,minmax(68px,1fr));gap:8px}
+    .cell{position:relative;border:2px solid var(--sico-brown);border-radius:16px;background:#fff;height:95px;padding:6px;
+      display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:.18s ease-out}
+    .cell:hover{transform:translateY(-2px);box-shadow:0 6px 15px rgba(15,23,42,.16);background:#fffdf7}
+    .num{position:absolute;top:-1px;left:-1px;background:var(--sico-brown);color:#fff;font-weight:700;font-size:.9rem;padding:5px 12px;border-radius:14px 0 14px 0}
+    .icon{width:82%;max-height:82%;object-fit:contain;margin-top:10px;pointer-events:none}
+    .locked{cursor:default;background:#fafafa;opacity:.7}.locked .num{background:#c4c4c4}
+    .locked::after{content:"🔒";position:absolute;top:4px;right:7px;font-size:.78rem}
+    footer{margin-top:16px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--text-soft);font-size:.8rem}
+    .legend{display:flex;gap:10px;flex-wrap:wrap}
+    .ld{width:10px;height:10px;border-radius:999px;border:1px solid #9ca3af;background:#f3f4f6}
+    .ld.open{border-color:#3e8759;background:#dcfce7}
+    .chip{padding:4px 10px;border-radius:999px;border:1px dashed rgba(209,213,219,.9);background:#f9fafb}
+
+    /* MODALE */
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,.35);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .hidden{opacity:0;pointer-events:none}
+    .card{background:#fff;border-radius:18px;padding:18px 16px 16px;max-width:740px;width:100%;
+      box-shadow:0 20px 40px rgba(15,23,42,.45);border:1px solid rgba(229,231,235,.95)}
+    .mhead{display:flex;justify-content:space-between;gap:10px}
+    .mtitle{font-weight:700}
+    .msub{color:var(--text-soft);font-size:.9rem}
+    .close{border:none;border-radius:999px;width:30px;height:30px;background:#f3f4f6;cursor:pointer}
+    .mbody{margin-top:12px;padding:12px;border:1px solid #e5e7eb;border-radius:14px;background:#f9fafb;max-height:min(520px,80vh);overflow:auto}
+
+    /* Blocs de jeu génériques */
+    .section + .section{margin-top:14px;padding-top:12px;border-top:1px dashed #d1d5db}
+    .tag{display:inline-flex;padding:2px 8px;border:1px dashed #d1d5db;border-radius:999px;background:#f9fafb;color:var(--text-soft);font-size:.75rem;margin-bottom:6px}
+    .intro2{color:var(--text-soft);font-size:.9rem;margin-bottom:8px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .in{flex:1;min-width:0;border:1px solid #d1d5db;border-radius:999px;padding:7px 10px;background:#fff}
+    .btn{border:none;border-radius:999px;padding:7px 13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,var(--sico-red),#b91c1c);color:#fff}
+    .btn2{border:1px solid #d1d5db;background:#fff;color:#111827}
+    .fb{margin-top:4px}.good{color:#166534}.bad{color:#b91c1c}
+    .fix{margin-top:6px;color:#374151;font-size:.9rem}
+    .fix ul{margin:6px 0 0 18px;padding:0}
+    .ok{outline:2px solid #16a34a25}.ko{outline:2px solid #b91c1c33}
+
+    /* SUDOKU — style maquette (pas de bordures épaisses à droite/au bas) */
+    .sudoku{display:grid;gap:0;background:#fff;border:1px solid var(--line-soft);padding:2px;inline-size:fit-content}
+    .s-row{display:flex}
+    .sudoku input{
+      width:36px;height:36px;text-align:center;border:1px solid var(--line-soft);border-radius:0;font-weight:700;color:#3b3b3b;background:#fff
+    }
+    .sudoku input.given{background:#f3f4f6;color:#4a4a4a}
+    .thick-b{border-bottom:3px solid var(--sico-brown)!important}
+    .thick-r{border-right:3px solid var(--sico-brown)!important}
+
+    /* Crossword mini (formulaire) */
+    .cw-form .line{margin-bottom:10px}
+    .cw-form .line .tag{margin-bottom:6px}
+
+    /* Mot casé (lettre par case) */
+    .wordfit-letters{display:flex;gap:8px;flex-wrap:wrap}
+    .letter{
+      width:36px;height:36px;border:1px solid #d1d5db;border-radius:8px;background:#fff;text-align:center;font-weight:700;font-size:1rem
+    }
+
+    /* Iframe integré */
+    .iframe-wrap iframe{width:100%;height:520px;border:0;border-radius:12px;background:#fff}
+
+    @media (max-width:900px){
+      header{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
+      .hero img{max-width:230px}.grid{grid-template-columns:repeat(6,minmax(68px,1fr))}
+      .logo img{width:160px}
+    }
+    @media (max-width:720px){
+      .wrap{padding:0 16px 20px;border-radius:26px}
+      header{grid-template-columns:1fr}.hero{justify-self:center}
+      .hero img{max-width:220px}
+      .grid{grid-template-columns:repeat(4,minmax(72px,1fr));padding-inline:8px}
+    }
+    @media (max-width:480px){.grid{grid-template-columns:repeat(3,1fr)}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Logo -->
+    <div class="logo">
+      <img src="Logo_SICO_sanspicto-vert_Plan%20de%20travail%201.png" alt="S.I.C.O.">
+    </div>
+
+    <!-- Branche -->
+    <div class="branch">
+      <img src="branche-sapin.png" alt="Décor sapin">
+    </div>
+
+    <header>
+      <div>
+        <h1>Calendrier de l’avent S.I.C.O.</h1>
+        <p class="intro">Une petite parenthèse enchantée par jour jusqu’à Noël : 24 mini-jeux pour faire travailler les méninges, s’évader deux minutes et glisser un peu de magie dans la journée. ✨</p>
+      </div>
+      <div class="hero"><img src="Mascotte-sapin.png" alt="Mascotte"></div>
+    </header>
+
+    <div class="meta">
+      <div class="pill"><span class="dot"></span><span id="today"></span></div>
+      <span id="calendar-info"></span>
+    </div>
+
+    <!-- GRILLE 8 x 3 -->
+    <section class="grid" aria-label="Calendrier de l'Avent S.I.C.O.">
+      <!-- 1..24 -->
+      <button type="button" class="cell" data-day="1"><span class="num">1</span><img class="icon" src="Image calendrier-02.png" alt=""></button>
+      <button type="button" class="cell" data-day="2"><span class="num">2</span><img class="icon" src="Image calendrier-03.png" alt=""></button>
+      <button type="button" class="cell" data-day="3"><span class="num">3</span><img class="icon" src="Image calendrier-04.png" alt=""></button>
+      <button type="button" class="cell" data-day="4"><span class="num">4</span><img class="icon" src="Image calendrier-02.png" alt=""></button>
+      <button type="button" class="cell" data-day="5"><span class="num">5</span><img class="icon" src="Image calendrier-03.png" alt=""></button>
+      <button type="button" class="cell" data-day="6"><span class="num">6</span><img class="icon" src="Image calendrier-04.png" alt=""></button>
+      <button type="button" class="cell" data-day="7"><span class="num">7</span><img class="icon" src="Image calendrier-02.png" alt=""></button>
+      <button type="button" class="cell" data-day="8"><span class="num">8</span><img class="icon" src="Image calendrier-03.png" alt=""></button>
+
+      <button type="button" class="cell" data-day="9"><span class="num">9</span><img class="icon" src="Image calendrier-04.png" alt=""></button>
+      <button type="button" class="cell" data-day="10"><span class="num">10</span><img class="icon" src="Image calendrier-02.png" alt=""></button>
+      <button type="button" class="cell" data-day="11"><span class="num">11</span><img class="icon" src="Image calendrier-03.png" alt=""></button>
+      <button type="button" class="cell" data-day="12"><span class="num">12</span><img class="icon" src="Image calendrier-04.png" alt=""></button>
+      <button type="button" class="cell" data-day="13"><span class="num">13</span><img class="icon" src="Image calendrier-02.png" alt=""></button>
+      <button type="button" class="cell" data-day="14"><span class="num">14</span><img class="icon" src="Image calendrier-03.png" alt=""></button>
+      <button type="button" class="cell" data-day="15"><span class="num">15</span><img class="icon" src="Image calendrier-04.png" alt=""></button>
+      <button type="button" class="cell" data-day="16"><span class="num">16</span><img class="icon" src="Image calendrier-02.png" alt=""></button>
+
+      <button type="button" class="cell" data-day="17"><span class="num">17</span><img class="icon" src="Image calendrier-03.png" alt=""></button>
+      <button type="button" class="cell" data-day="18"><span class="num">18</span><img class="icon" src="Image calendrier-04.png" alt=""></button>
+      <button type="button" class="cell" data-day="19"><span class="num">19</span><img class="icon" src="Image calendrier-02.png" alt=""></button>
+      <button type="button" class="cell" data-day="20"><span class="num">20</span><img class="icon" src="Image calendrier-03.png" alt=""></button>
+      <button type="button" class="cell" data-day="21"><span class="num">21</span><img class="icon" src="Image calendrier-04.png" alt=""></button>
+      <button type="button" class="cell" data-day="22"><span class="num">22</span><img class="icon" src="Image calendrier-02.png" alt=""></button>
+      <button type="button" class="cell" data-day="23"><span class="num">23</span><img class="icon" src="Image calendrier-03.png" alt=""></button>
+      <button type="button" class="cell" data-day="24"><span class="num">24</span><img class="icon" src="Image calendrier-04.png" alt=""></button>
+    </section>
+
+    <footer>
+      <div class="legend">
+        <span><span class="ld open"></span> Cases accessibles</span>
+        <span><span class="ld"></span> Cases encore à venir</span>
+      </div>
+      <div class="chip">Mini-jeux de 2–3 minutes, à dégainer en pause café ☕</div>
+    </footer>
+  </div>
+
+  <!-- MODALE -->
+  <div id="modal" class="modal hidden" aria-modal="true" role="dialog">
+    <div class="card">
+      <div class="mhead">
+        <div>
+          <div class="mtitle" id="g-title"></div>
+          <div class="msub" id="g-sub"></div>
+        </div>
+        <button class="close" id="g-close" aria-label="Fermer">✕</button>
+      </div>
+      <div class="mbody"><div id="game"></div></div>
+    </div>
+  </div>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const TEST_MODE = false; // true pour tout débloquer
+    const todayEl = document.getElementById("today");
+    const infoEl = document.getElementById("calendar-info");
+    const cells = document.querySelectorAll(".cell");
+    const modal = document.getElementById("modal");
+    const game = document.getElementById("game");
+    const gTitle = document.getElementById("g-title");
+    const gSub = document.getElementById("g-sub");
+    const closeBtn = document.getElementById("g-close");
+
+    const now = new Date();
+    const isDecember = now.getMonth() === 11;
+    if (todayEl) {
+      todayEl.textContent = "Nous sommes le " + now.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+    }
+    const maxOpen = (TEST_MODE || !isDecember) ? 24 : Math.min(now.getDate(), 24);
+    if (infoEl) {
+      infoEl.textContent = (TEST_MODE || !isDecember)
+        ? "Mode démo : toutes les cases sont ouvertes. En décembre, l'ouverture est limitée au jour J."
+        : "Tu peux ouvrir les cases du 1 au " + maxOpen + " décembre.";
+    }
+
+    /* CONFIG (mot casé en 7, mots croisés en 18) */
+    const cfg = {
+      1:  {type:"guess",    subtitle:"Devine le nombre (1–10)", max:10, attempts:3},
+      2:  {type:"anagrams", subtitle:"Anagrammes faciles ×3", words:["NOEL","SAPIN","RENNE","NEIGE","ETOILE","ANGE"], count:3},
+      3:  {type:"puzzle",   subtitle:"Suite logique (facile)", sequences:[{question:"2, 4, 6, ?",answer:"8"},{question:"1, 1, 2, 3, 5, ?",answer:"8"},{question:"3, 6, 9, 12, ?",answer:"15"}]},
+      4:  {type:"sudoku4",  subtitle:"Mini-sudoku 4×4"},
+      5:  {type:"memory",   subtitle:"Mémo 8 cartes", icons:["🎄","❄️","🎁","🧣"]},
+      6:  {type:"math",     subtitle:"Calcul mental (5 questions)"},
+      7:  {type:"wordfitOne", subtitle:"Mot casé – spécial cabane", clue:"Petite habitation misérable", answer:"cahute"},
+      8:  {type:"embed",    subtitle:"Cadenas n°1", url:"cadenas1.html"},
+      9:  {type:"sudoku9",  subtitle:"Sudoku 9×9 – simple", difficulty:"easy"},
+      10: {type:"math",     subtitle:"Calcul mental (5 questions)"},
+      11: {type:"riddle",   subtitle:"Devinette", riddles:[{question:"Je tombe en hiver mais je ne me fais pas mal. Qui suis-je ?", answer:"neige"}]},
+      12: {type:"anagrams", subtitle:"Anagrammes difficiles ×3", words:["CHOCOLAT","GUIRLANDE","CHEMINEE","TRAINEAU","CADEAUX","BISCUITS"], count:3},
+      13: {type:"guess",    subtitle:"Devine le nombre (1–50)", max:50, attempts:7},
+      14: {type:"embed",    subtitle:"Cadenas n°2", url:"cadenas2.html"},
+      15: {type:"sudoku9",  subtitle:"Sudoku 9×9 – moyen", difficulty:"medium"},
+      16: {type:"memory",   subtitle:"Mémo 8 cartes", icons:["🕯️","☕","🧦","🍪"]},
+      17: {type:"riddle",   subtitle:"Devinettes du feu de cheminée", riddles:[
+            {question:"Je crépite dans le foyer et je réchauffe la pièce.", answer:"feu"},
+            {question:"On me boit chaud, avec du chocolat et parfois de la chantilly.", answer:"chocolat chaud"}
+          ]},
+      18: {type:"crosswordForm", subtitle:"Mots croisés cocooning", words:[
+            {clue:"Boisson chaude au cacao", answer:"chocolatchaud"},
+            {clue:"On les met aux pieds quand il fait froid", answer:"chaussettes"},
+            {clue:"On y allume parfois un feu", answer:"cheminee"}
+          ]},
+      19: {type:"guess",    subtitle:"Devine le nombre (1–100)", max:100, attempts:8},
+      20: {type:"puzzle",   subtitle:"Suites logiques (difficiles)", sequences:[
+            {question:"4, 9, 16, 25, ?", answer:"36"},
+            {question:"2, 3, 5, 7, 11, ?", answer:"13"},
+            {question:"1, 2, 4, 7, 11, ?", answer:"16"}
+          ]},
+      21: {type:"sudoku9",  subtitle:"Sudoku 9×9 – difficile", difficulty:"hard"},
+      22: {type:"memory",   subtitle:"Mémo 12 cartes", icons:["🎄","🎁","🧦","☕","🕯️","🍪"]},
+      23: {type:"embed",    subtitle:"Cadenas n°3", url:"cadenas3.html"},
+      24: {type:"embed",    subtitle:"Grand mot casé", url:"grand-mot-case.html"}
+    };
+
+    // Verrouillage / ouverture
+    cells.forEach(btn=>{
+      const d = +btn.dataset.day;
+      if(d <= maxOpen){ btn.addEventListener("click",()=>open(d)); }
+      else{ btn.classList.add("locked"); btn.addEventListener("click",()=>alert("Patience ! La case "+d+" s’ouvre le "+d+" décembre.")); }
+    });
+
+    function showModal(){ modal.classList.remove("hidden"); document.body.classList.add("no-scroll"); }
+    function closeModal(){ modal.classList.add("hidden"); document.body.classList.remove("no-scroll"); game.innerHTML=""; }
+    closeBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click",(e)=>{ if(e.target===modal) closeModal(); });
+
+    function open(day){
+      const c = cfg[day] || {};
+      gTitle.textContent = "Case n°"+day+" 🎁";
+      gSub.textContent = c.subtitle || "Mini-jeu";
+      game.innerHTML = "";
+
+      switch(c.type){
+        case "guess":        renderGuess(game,c); break;
+        case "anagrams":     renderAnagrams(game,c); break;
+        case "puzzle":       renderPuzzle(game,c); break;
+        case "sudoku4":      renderSudoku(game,{size:4}); break;
+        case "sudoku9":      renderSudoku(game,{size:9, difficulty:c.difficulty||"easy"}); break;
+        case "memory":       renderMemory(game,c); break;
+        case "math":         renderMath(game,c); break;
+        case "riddle":       renderRiddles(game,c); break;
+        case "crosswordForm":renderCrosswordForm(game,c); break;
+        case "wordfitOne":   renderWordFitOne(game,c); break;
+        case "embed":        renderEmbed(game,c.url); break;
+        default: game.textContent="Mini-jeu en préparation…";
+      }
+      showModal();
+    }
+
+    /* ===== util UI ===== */
+    function el(tag,cls,txt){ const n=document.createElement(tag); if(cls) n.className=cls; if(txt!=null) n.textContent=txt; return n; }
+    function makeSection(title){ const s=el("section","section"); if(title) s.append(el("div","tag",title)); return s; }
+    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} }
+    function mix(word){ const arr=word.replace(/\s+/g,"").split(""); for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr.join("").toUpperCase(); }
+    const strip = s => (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"");
+
+    /* ===== MINI-JEUX ===== */
+
+    // 1) Devine le nombre
+    function renderGuess(container, cfg){
+      const max=cfg.max||10, tries=cfg.attempts||3, secret=Math.floor(Math.random()*max)+1;
+      let left=tries, done=false;
+      const sec=makeSection("Devine le nombre");
+      sec.append(el("p","intro2","Je pense à un nombre entre 1 et "+max+". Tu as "+tries+" essai(s)."));
+      const row=el("div","row"); const inp=el("input","in"); inp.type="number"; inp.min=1; inp.max=max; inp.placeholder="Ta proposition…";
+      const btn=el("button","btn"); btn.textContent="Valider";
+      const fb=el("p","fb"); const sc=el("p","intro2"); sc.textContent="Essais restants : "+left;
+      btn.onclick=()=>{ if(done) return; const v=parseInt(inp.value,10);
+        if(!v || v<1 || v>max){ fb.className="fb bad"; fb.textContent="Nombre entre 1 et "+max+" attendu."; return; }
+        if(v===secret){ fb.className="fb good"; fb.innerHTML="Bravo ✨ !"; btn.disabled=inp.disabled=true; done=true; sc.textContent="Partie terminée."; }
+        else{ left--; if(left<=0){ fb.className="fb bad"; fb.innerHTML="Perdu… c’était <b>"+secret+"</b>."; btn.disabled=inp.disabled=true; sc.textContent="Essais restants : 0"; }
+              else{ fb.className="fb"; fb.textContent=(v<secret?"C’est plus grand.":"C’est plus petit."); sc.textContent="Essais restants : "+left; } }
+      };
+      row.append(inp,btn); sec.append(row,fb,sc); container.append(sec);
+    }
+
+    // 2 / 12) Anagrammes ×3 — affiche corrections si erreurs
+    function renderAnagrams(container, cfg){
+      const pool=(cfg.words||[]).slice(); shuffle(pool); const n=Math.min(cfg.count||3, pool.length);
+      const chosen=pool.slice(0,n);
+      const sec=makeSection("Anagrammes");
+      sec.append(el("p","intro2","Retrouve les mots liés à l’hiver / Noël."));
+      const form=el("form"); const fb=el("p","fb"); const fixes=el("div","fix");
+      const inputs=[];
+      chosen.forEach((w,i)=>{ const wrap=el("div","section");
+        wrap.append(el("div","tag","Mot "+(i+1)+" : "+mix(w)));
+        const row=el("div","row"); const inp=el("input","in"); inp.type="text"; inp.placeholder="Ta proposition…"; inp.dataset.answer=strip(w); inputs.push({inp,answer:w});
+        row.append(inp); wrap.append(row); form.append(wrap);
+      });
+      const r=el("div","row"); const btn=el("button","btn"); btn.type="submit"; btn.textContent="Valider toutes"; r.append(btn); form.append(r,fb,fixes);
+      form.onsubmit=(e)=>{e.preventDefault(); let ok=0; const wrong=[];
+        inputs.forEach(({inp,answer},idx)=>{ if(strip(inp.value)===strip(answer)){ ok++; inp.classList.remove("ko"); inp.classList.add("ok"); } else { inp.classList.remove("ok"); inp.classList.add("ko"); wrong.push({idx,answer}); }});
+        if(wrong.length){ fb.className="fb bad"; fb.innerHTML="Il y a "+wrong.length+" erreur(s).";
+          const ul=document.createElement("ul"); wrong.forEach(w=>{ const li=document.createElement("li"); li.textContent="Mot "+(w.idx+1)+" → "+w.answer.toLowerCase(); ul.append(li); }); fixes.innerHTML="<strong>Corrections :</strong>"; fixes.append(ul);
+        } else { fb.className="fb good"; fb.textContent="Parfait !"; fixes.innerHTML=""; }
+      };
+      container.append(sec,form);
+    }
+
+    // 3 / 20) Suites logiques — affiche corrections si erreurs
+    function renderPuzzle(container, cfg){
+      const seq=cfg.sequences||[]; const sec=makeSection("Suites logiques");
+      sec.append(el("p","intro2","Complète les suites de nombres. Cherche la logique !"));
+      const form=el("form"); const fb=el("p","fb"); const fixes=el("div","fix");
+      const fields=[];
+      seq.forEach((s,i)=>{ const b=el("div","section"); b.append(el("div","tag","Suite "+(i+1)+" : "+s.question));
+        const row=el("div","row"); const inp=el("input","in"); inp.type="number"; inp.placeholder="Nombre manquant…"; fields.push({inp,ans:(s.answer||"").trim(),i});
+        row.append(inp); b.append(row); form.append(b);
+      });
+      const rb=el("div","row"); const btn=el("button","btn"); btn.type="submit"; btn.textContent="Valider"; rb.append(btn); form.append(rb,fb,fixes);
+      form.onsubmit=(e)=>{e.preventDefault(); const wrong=[];
+        fields.forEach(f=>{ if((f.inp.value||"").trim()===f.ans){ f.inp.classList.add("ok"); f.inp.classList.remove("ko"); } else { f.inp.classList.add("ko"); f.inp.classList.remove("ok"); wrong.push(f); }});
+        if(wrong.length){ fb.className="fb bad"; fb.textContent="Il y a "+wrong.length+" erreur(s).";
+          const ul=document.createElement("ul"); wrong.forEach(w=>{ const li=document.createElement("li"); li.textContent="Suite "+(w.i+1)+" → "+w.ans; ul.append(li); }); fixes.innerHTML="<strong>Corrections :</strong>"; fixes.append(ul);
+        } else { fb.className="fb good"; fb.textContent="Bravo, tout est juste !"; fixes.innerHTML=""; }
+      };
+      container.append(sec,form);
+    }
+
+    // 4 / 9 / 15 / 21) Sudoku
+    function renderSudoku(container,{size=9,difficulty="easy"}){
+      const base = makeSudokuSolution(size);
+      const puzzle = makeSudokuPuzzle(base,size,difficulty);
+      const title = size===4 ? "Mini-sudoku 4×4" : "Sudoku 9×9";
+      const sec=makeSection(title);
+      const txt = size===4
+        ? "Remplis la grille avec les chiffres 1 à 4. Chaque ligne, chaque colonne et chaque carré doit contenir tous les chiffres une seule fois."
+        : "Remplis la grille avec les chiffres 1 à 9. Chaque ligne, chaque colonne et chaque carré doit contenir tous les chiffres une seule fois.";
+      sec.append(el("p","intro2",txt));
+
+      const grid=el("div","sudoku");
+      const block = (size===9)?3:2;
+      for(let r=0;r<size;r++){
+        const row=el("div","s-row");
+        for(let c=0;c<size;c++){
+          const v=puzzle[r][c]; const inp=document.createElement("input");
+          inp.maxLength=1; inp.inputMode="numeric"; inp.dataset.r=r; inp.dataset.c=c;
+          if(v){ inp.value=v; inp.readOnly=true; inp.classList.add("given"); }
+          if ((c+1)%block===0 && c!==size-1) inp.classList.add("thick-r");
+          if ((r+1)%block===0 && r!==size-1) inp.classList.add("thick-b");
+          row.append(inp);
+        }
+        grid.append(row);
+      }
+
+      const actions=el("div","row");
+      const check=el("button","btn"); check.textContent="Vérifier";
+      const reset=el("button","btn btn2"); reset.textContent="Réinitialiser";
+      const fb=el("p","fb");
+      check.onclick=()=>{ const ok=validateSudokuInputs(grid,base); fb.className="fb "+(ok?"good":"bad"); fb.textContent= ok ? "Bravo, c’est correct !" : "Il reste des erreurs…"; };
+      reset.onclick=()=>{ grid.querySelectorAll("input:not(.given)").forEach(i=>i.value=""); fb.textContent=""; };
+
+      actions.append(check,reset);
+      container.append(sec,grid,actions,fb);
+    }
+    function makeSudokuSolution(n){
+      if(n===9){ const row=[1,2,3,4,5,6,7,8,9]; const g=Array.from({length:9},()=>Array(9).fill(0));
+        const pattern=(r,c)=>((r*3+Math.floor(r/3)+c)%9);
+        for(let r=0;r<9;r++) for(let c=0;c<9;c++) g[r][c]=row[pattern(r,c)]; return g;
+      } else { const row=[1,2,3,4]; const g=Array.from({length:4},()=>Array(4).fill(0));
+        const pattern=(r,c)=>((r*2+Math.floor(r/2)+c)%4);
+        for(let r=0;r<4;r++) for(let c=0;c<4;c++) g[r][c]=row[pattern(r,c)]; return g; }
+    }
+    function makeSudokuPuzzle(sol,n,level){
+      const total=n*n; let givens;
+      if(n===4){ givens=10; }
+      else { givens = (level==="easy")?45 : (level==="medium")?35 : 28; }
+      const reveal=new Set(); while(reveal.size<givens){ reveal.add(Math.floor(Math.random()*total)); }
+      const puz=Array.from({length:n},()=>Array(n).fill(0));
+      [...reveal].forEach(idx=>{ const r=Math.floor(idx/n), c=idx%n; puz[r][c]=sol[r][c]; });
+      return puz;
+    }
+    function validateSudokuInputs(grid,sol){
+      const inputs=grid.querySelectorAll("input");
+      for(const i of inputs){ const r=+i.dataset.r, c=+i.dataset.c; const v=parseInt(i.value||"0",10); if(v!==sol[r][c]) return false; }
+      return true;
+    }
+
+    // 5 / 16 / 22) Mémo
+    function renderMemory(container, cfg){
+      const icons=(cfg.icons||["🎄","🎁","🧦","☕"]).slice();
+      const pairs = icons.concat(icons);
+      shuffle(pairs);
+      const sec=makeSection("Mémo"); sec.append(el("p","intro2","Retourne les cartes pour retrouver les paires."));
+      const grid=el("div"); grid.style.display="grid"; grid.style.gridTemplateColumns="repeat(4,minmax(0,1fr))"; grid.style.gap="8px";
+      const status=el("p","intro2");
+      let first=null, lock=false, found=0, moves=0;
+      function update(){ status.textContent="Paires trouvées : "+found+" / "+icons.length+" — Coups : "+moves; }
+      pairs.forEach(icon=>{ const b=document.createElement("button"); b.type="button"; styleCard(b); b.textContent="❄️"; b.dataset.icon=icon;
+        b.onclick=()=>{ if(lock||b.disabled)return; b.textContent=icon; b.style.background="#fff7ed";
+          if(!first){ first=b; } else { lock=true; moves++;
+            if(first.dataset.icon===b.dataset.icon && first!==b){ setTimeout(()=>{ first.disabled=b.disabled=true; first.style.opacity=b.style.opacity=".6"; first.style.background=b.style.background="#ecfdf3"; found++; first=null; lock=false; update(); },380); }
+            else{ setTimeout(()=>{ first.textContent=b.textContent="❄️"; first.style.background=b.style.background="#fff"; first=null; lock=false; update(); },480); }
+          }
+        };
+        grid.append(b);
+      });
+      update(); container.append(sec,grid,status);
+    }
+    function styleCard(btn){
+      btn.style.borderRadius="12px"; btn.style.border="1px solid #d1d5db"; btn.style.height="64px";
+      btn.style.display="flex"; btn.style.alignItems="center"; btn.style.justifyContent="center";
+      btn.style.fontSize="1.6rem"; btn.style.background="#fff"; btn.style.cursor="pointer";
+    }
+
+    // 6 / 10) Calcul mental (“Question 1/5 →”)
+    function renderMath(container){
+      const count=5; const ops=["+","-","×"]; const qs=[];
+      for(let i=0;i<count;i++){ const a=rand(1,12), b=rand(1,12), op=ops[rand(0,ops.length-1)];
+        const sol=(op==="+")?a+b:(op==="-")?a-b:a*b; qs.push({a,b,op,sol}); }
+      let idx=0, score=0;
+      const sec=makeSection("Calcul mental"); const title=el("p","intro2");
+      const row=el("div","row"); const inp=el("input","in"); inp.type="number"; inp.placeholder="Réponse…";
+      const btn=el("button","btn"); btn.textContent="Valider"; const fb=el("p","fb"); const sc=el("p","intro2");
+      function show(){ const q=qs[idx]; title.textContent="Question "+(idx+1)+"/"+count+" →  "+q.a+" "+q.op+" "+q.b+" = ?"; inp.value=""; inp.focus(); sc.textContent="Score provisoire : "+score; }
+      function submit(){ const q=qs[idx]; const v=parseInt(inp.value||"NaN",10);
+        if(v===q.sol){ score++; fb.className="fb good"; fb.textContent="✅ Parfait !"; } else { fb.className="fb bad"; fb.textContent="❌ La bonne réponse était "+q.sol; }
+        idx++; if(idx>=count){ btn.disabled=inp.disabled=true; sc.textContent="Résultat final : "+score+" / "+count; } else show();
+      }
+      btn.onclick=submit; inp.onkeydown=(e)=>{ if(e.key==="Enter") submit(); };
+      row.append(inp,btn); sec.append(title,row,fb,sc); container.append(sec); show();
+    }
+
+    // 11 / 17) Devinettes — affiche corrections si erreurs
+    function renderRiddles(container, cfg){
+      const sec=makeSection("Devinettes"); const form=el("form"); const fb=el("p","fb"); const fixes=el("div","fix");
+      const fields=[];
+      (cfg.riddles||[]).forEach((r,i)=>{ const b=el("div","section"); b.append(el("div","tag","👉 "+r.question));
+        const row=el("div","row"); const inp=el("input","in"); inp.type="text"; inp.placeholder="Ta réponse…"; fields.push({inp,ans:strip(r.answer),i});
+        row.append(inp); b.append(row); form.append(b);
+      });
+      const rb=el("div","row"); const btn=el("button","btn"); btn.type="submit"; btn.textContent="Vérifier"; rb.append(btn); form.append(rb,fb,fixes);
+      form.onsubmit=(e)=>{e.preventDefault(); const wrong=[];
+        fields.forEach(f=>{ if(strip(f.inp.value)===f.ans){ f.inp.classList.add("ok"); f.inp.classList.remove("ko"); } else { f.inp.classList.add("ko"); f.inp.classList.remove("ok"); wrong.push(f); }});
+        if(wrong.length){ fb.className="fb bad"; fb.textContent="Il y a "+wrong.length+" erreur(s).";
+          const ul=document.createElement("ul"); wrong.forEach(w=>{ const li=document.createElement("li"); li.textContent="Devinette "+(w.i+1)+" → "+w.ans; ul.append(li); }); fixes.innerHTML="<strong>Corrections :</strong>"; fixes.append(ul);
+        } else { fb.className="fb good"; fb.textContent="Bravo !"; fixes.innerHTML=""; }
+      };
+      container.append(sec,form);
+    }
+
+    // 18) Mots croisés cocooning — affiche corrections si erreurs
+    function renderCrosswordForm(container, cfg){
+      const sec=makeSection("Mini mots croisés");
+      sec.append(el("p","intro2","Complète les mots à partir des définitions. Écris-les sans accents ni majuscules (ex. : noel)."));
+      const form=el("form"); form.className="cw-form"; const fb=el("p","fb"); const fixes=el("div","fix");
+      const fields=[];
+      (cfg.words||[]).forEach((w,idx)=>{
+        const line=el("div","line");
+        const len=strip(w.answer).length;
+        line.append(el("div","tag","Mot "+(idx+1)+" ("+len+" lettre(s)) — "+w.clue));
+        const input=el("input","in"); input.type="text"; input.placeholder="Ta réponse…"; fields.push({inp:input,ans:strip(w.answer),i:idx,pretty:w.answer});
+        line.append(input); form.append(line);
+      });
+      const rb=el("div","row"); const btn=el("button","btn"); btn.type="submit"; btn.textContent="Vérifier mes mots"; rb.append(btn); form.append(rb,fb,fixes);
+      form.onsubmit=(e)=>{e.preventDefault(); const wrong=[];
+        fields.forEach(f=>{ if(strip(f.inp.value)===f.ans){ f.inp.classList.add("ok"); f.inp.classList.remove("ko"); } else { f.inp.classList.add("ko"); f.inp.classList.remove("ok"); wrong.push(f); }});
+        if(wrong.length){ fb.className="fb bad"; fb.textContent="Il y a "+wrong.length+" erreur(s).";
+          const ul=document.createElement("ul"); wrong.forEach(w=>{ const li=document.createElement("li"); li.textContent="Mot "+(w.i+1)+" → "+w.pretty.toLowerCase(); ul.append(li); });
+          fixes.innerHTML="<strong>Corrections :</strong>"; fixes.append(ul);
+        } else { fb.className="fb good"; fb.textContent="Parfait !"; fixes.innerHTML=""; }
+      };
+      container.append(sec,form);
+    }
+
+    // 7) Mot casé — 1 mot
+    function renderWordFitOne(container, cfg){
+      const answer = strip(cfg.answer||"");
+      const sec=makeSection("Mot casé");
+      const tag=el("div","tag",cfg.clue||"Définition");
+      const intro=el("p","intro2","Retrouve le mot à partir de la définition, puis remplis les cases (1 lettre par case).");
+      const boxes=el("div","wordfit-letters");
+      const inputs=[];
+      for(let i=0;i<answer.length;i++){
+        const inp=document.createElement("input"); inp.className="letter"; inp.maxLength=1; inp.inputMode="latin"; boxes.append(inp); inputs.push(inp);
+      }
+      const rb=el("div","row"); const btn=el("button","btn"); btn.textContent="Vérifier le mot";
+      const fb=el("p","fb");
+      btn.onclick=()=>{ const guess=strip(inputs.map(i=>i.value).join("")); if(guess===answer){ fb.className="fb good"; fb.textContent="Bravo !"; } else { fb.className="fb bad"; fb.textContent="Pas encore… Réponse attendue : "+(cfg.answer||"").toLowerCase(); } };
+      rb.append(btn); sec.append(tag,intro,boxes,rb,fb); container.append(sec);
+    }
+
+    // 8/14/23/24) Iframe (cadenas & grand mot-casé)
+    function renderEmbed(container, url){
+      const sec=makeSection("Jeu externe intégré");
+      const wrap=el("div","iframe-wrap");
+      const iframe=document.createElement("iframe"); iframe.src=url;
+      wrap.append(iframe); sec.append(wrap); container.append(sec);
+    }
+  });
+  </script>
+</body>
+</html>
